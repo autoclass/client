@@ -1,0 +1,157 @@
+@use "sass:map";
+$enable-responsive-font-sizes: true;
+
+$solarized-dark: (
+  "white":    #002b36,
+  "black":    #93a1a1,
+
+  "blue":   #268BD2,
+  "indigo": #5A61D3,
+  "purple": #6C71C4,
+  "pink":   #c241ac,
+  "red":    #DC322F,
+  "orange": #B58900,
+  "yellow": #B58900,
+  "green":  #859900,
+  "teal":   #2AA198,
+  "cyan":   #309DB0,
+);
+
+$tomorrow-dark: (
+  "white":    #C5C8C6,
+  "black":    #1D1F21,
+
+  "blue":   #81A2BE,
+  "indigo": #928FC2,
+  "purple": #B294BB,
+  "pink":   #D29CD3,
+  "red":    #CC6666,
+  "orange": #F0C674,
+  "yellow": #E3D373,
+  "green":  #B5BD68,
+  "teal":   #8ABEB7,
+  "cyan":   #8ABE97,
+);
+$tomorrow-light: map-merge($tomorrow-dark, ("white": #ffffff, "black": #373B41));
+
+$greenscreen-dark: (
+  "white":    #001100,
+  "black":    #00BB00,
+
+  "blue":   #007700,
+  "indigo": #00BB00,
+  "purple": #00BB00,
+  "pink":   #00BB00,
+  "red":    #007700,
+  "orange": #009900,
+  "yellow": #00BB00,
+  "green":  #005500,
+  "teal":   #00BB00,
+  "cyan":   #00FF00,
+);
+
+$euphrasia-light: (
+  "white":    #CFCFD9,
+  "black":    #1C2027,
+
+  "blue":   #45A3E6,
+  "indigo": #7C4F9F,
+  "purple": #C953EF,
+  "pink":   #C953EF,
+  "red":    #F04758,
+  "orange": #B27D12,
+  "yellow": #DDB62B,
+  "green":  #38912B,
+  "teal":   #258F8F,
+  "cyan":   #60C6C8,
+);
+
+$eighties-light: (
+  "white":    #F2F0EC,
+  "black":    #2D2D2D,
+
+  "blue":   #6699CC,
+  "indigo": #CC99CC,
+  "purple": #CB84CB,
+  "pink":   #CC99CC,
+  "red":    #F2777A,
+  "orange": #F4B944,
+  "yellow": #F3D861,
+  "green":  #89ba89,
+  "teal":   #99CCBA,
+  "cyan":   #99DAE3,
+);
+
+$theme: $eighties-light;
+//$theme: ();
+$opposite-mode: false;
+
+$black:    map.get($theme, if($opposite-mode, "white", "black"));
+$white:    map.get($theme, if($opposite-mode, "black", "white"));
+
+$grays: ();
+@if($black != null and $white != null) {
+  @for $i from 1 through 9 {
+    $map: ();
+    $map: map-merge($map, ("gray-#{$i * 100}": mix($black, $white, 100% / 10 * $i)));
+    $grays: map-merge($grays, $map);
+  }
+}
+
+$gray-100: map.get($grays, "gray-100");
+$gray-200: map.get($grays, "gray-200");
+$gray-300: map.get($grays, "gray-300");
+$gray-400: map.get($grays, "gray-400");
+$gray-500: map.get($grays, "gray-500");
+$gray-600: map.get($grays, "gray-600");
+$gray-700: map.get($grays, "gray-700");
+$gray-800: map.get($grays, "gray-800");
+$gray-900: map.get($grays, "gray-900");
+
+$blue:   map.get($theme, "blue");
+$indigo: map.get($theme, "indigo");
+$purple: map.get($theme, "purple");
+$pink:   map.get($theme, "pink");
+$red:    map.get($theme, "red");
+$orange: map.get($theme, "orange");
+$yellow: map.get($theme, "yellow");
+$green:  map.get($theme, "green");
+$teal:   map.get($theme, "teal");
+$cyan:   map.get($theme, "cyan");
+
+@import url(https://fonts.googleapis.com/css?family=Lato:200,300,400,700);
+$font-family-base:Lato;
+@import url(https://fonts.googleapis.com/css?family=Open+Sans:200,300,400,700);
+$headings-font-family:Open Sans;
+$enable-shadows: true;
+$grid-gutter-width: 20px;
+$spacer: 0.65rem;
+
+@import "~bootstrap";
+
+.card-header {
+  background-color: rgba($black, .10);
+}
+
+#overlay * {
+  pointer-events: all;
+}
+
+#sound-hash-list * {
+  @include font-size(10pt);
+}
+
+button.close[aria-label="Delete"] > span {
+  color: $danger;
+}
+
+#log-window-card {
+  $min-height: 400px;
+
+  min-height: $min-height;
+
+  textarea.text-monospace {
+    min-height: $min-height;
+    @include font-size(10pt);
+  }
+}
