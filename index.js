@@ -4,6 +4,7 @@ import 'bootstrap';
 import './index.html';
 
 import { io } from 'socket.io-client';
+import * as idb from 'idb-keyval';
 
 import * as sha1 from "sha-1";
 
@@ -45,6 +46,65 @@ const logBuffer = {
         }
     }
 
+    function setupSock(_sock) {
+        _sock.on('connect', () => {
+            _sock.emit('new user', {
+                username: username.get(),
+                sounds: Array.from(sounds.keys()),
+            });
+            logBuffer.push(`[${new Date().toTimeString().split(' ')[0]}] Connected!`);
+        });
+        _sock.on('disconnect', error => {
+            logBuffer.push(`[${new Date().toTimeString().split(' ')[0]}] Disconnected! (${error})`);
+            console.error("Disconnected!", error)
+        });
+        _sock.on('connect_error', error => {
+            logBuffer.push(`[${new Date().toTimeString().split(' ')[0]}] Could not connect! (${error})`);
+            console.error("Could not connect!", error)
+        });
+        _sock.on('play', async ({sound}) => {
+            const soundHashes = sounds.get(sound);
+            if(!soundHashes) return;
+
+            const hash = soundHashes[Math.floor(Math.random() * soundHashes.length)];
+            const blob = await idb.get(hash);
+
+            const audio = new Audio(URL.createObjectURL(blob));
+
+            audio.onloadedmetadata = async e => {
+                URL.revokeObjectURL(audio.src);
+                const data = new URLSearchParams([["length", Math.ceil(audio.duration) + 2]]);
+                dryMode || await fetch(`http://localhost:3001/unmute`, {
+                    body: data,
+                    method: 'POST'
+                });
+                await audio.play();
+            }
+
+            logBuffer.push(`[${new Date().toTimeString().split(' ')[0]}] Played sound '${sound}'/${hash}`);
+        });
+        _sock.on('leave', async () => {
+            dryMode || await fetch('http://localhost:3001/leave');
+            logBuffer.push(`[${new Date().toTimeString().split(' ')[0]}] Left current class`);
+        })
+        _sock.on('unmute', async ({length}) => {
+            const data = new URLSearchParams([["length", length]]);
+            dryMode || await fetch(`http://localhost:3001/unmute`, {
+                body: data,
+                method: 'POST'
+            });
+            logBuffer.push(`[${new Date().toTimeString().split(' ')[0]}] Unmuted for ${length}s`);
+        });
+        _sock.on('join', async ({platform, opts}) => {
+            const data = new URLSearchParams([["platform", platform], ["opts", opts]]);
+            dryMode || await fetch(`http://localhost:3001/join`, {
+                body: data,
+                method: 'POST'
+            });
+            logBuffer.push(`[${new Date().toTimeString().split(' ')[0]}] Joined class on ${platform}`);
+        });
+    }
+
     $(
         () => {
             const $logWindow = $('#log-window');
@@ -62,6 +122,12 @@ const logBuffer = {
             $("#usernameForm").submit(e => {
                 e.preventDefault();
 
+                socket && socket.close();
+                const socketUrl = $('#socketUrl').val(),
+                    token = $('#serverSecret').val();
+                socket = io(socketUrl, {query: {token}});
+                setupSock(socket);
+
                 $(`
                     <div class="alert alert-info alert-dismissible fade show" role="alert">
                         <strong>Konekcija izvršena!</strong> Eventualne greške/logovi se nalaze u konzoli (F12).
@@ -78,68 +144,23 @@ const logBuffer = {
     const _username = await ldb.get("username");
     if(_username) username.set(_username);
 
-
-    // SHA-1 -> File
-    const _files = JSON.parse(await ldb.get("files"));
-    const files = (_files && new Map(_files)) || new Map();
+    let dryMode = false;
 
     // Name -> [SHA-1]
     const _sounds = JSON.parse(await ldb.get("sounds"));
     const sounds =  (_sounds && new Map(_sounds)) || new Map();
 
-    const socket = io('http://localhost:3000');
-    const connect = () => {
-        socket.emit('new user', {
-            username: username.get(),
-            sounds: Array.from(sounds.keys()),
-        });
-        logBuffer.push(`[${new Date().toTimeString().split(' ')[0]}] Connected!`);
-    };
+    let socket;
 
-    socket.on('connect', connect);
-    socket.on('disconnect', error => {
-        logBuffer.push(`[${new Date().toTimeString().split(' ')[0]}] Disconnected! (${error})`);
-        console.error("Disconnected!", error)
-    });
-    socket.on('connect_error', error => {
-        logBuffer.push(`[${new Date().toTimeString().split(' ')[0]}] Could not connect! (${error})`);
-        console.error("Could not connect!", error)
-    });
-    socket.on('play', async ({sound}) => {
-        const soundHashes = sounds.get(sound);
-        if(!soundHashes) return;
 
-        const hash = soundHashes[Math.floor(Math.random() * soundHashes.length)];
-        const blob = files.get(hash);
-
-        const audio = new Audio(URL.createObjectURL(blob));
-        audio.onloadedmetadata = e => URL.revokeObjectURL(audio.src);
-
-        await fetch(`http://localhost:3001/mute?length=${Math.ceil(audio.duration) + 2}`);
-        audio.play();
-
-        logBuffer.push(`[${new Date().toTimeString().split(' ')[0]}] Played sound ${sound}/${hash}`);
-    });
-    socket.on('leave', async () => {
-        await fetch('http://localhost:3001/leave');
-        logBuffer.push(`[${new Date().toTimeString().split(' ')[0]}] Left current class`);
-    })
-    socket.on('unmute', async ({length}) => {
-        await fetch(`http://localhost:3001/mute?length=${length}`)
-        logBuffer.push(`[${new Date().toTimeString().split(' ')[0]}] Unmuted for ${length}s`);
-    });
-    socket.on('join', async ({platform, opts}) => {
-        await fetch(`http://localhost:3001/join?platform=${platform}&opts=${opts}`)
-        logBuffer.push(`[${new Date().toTimeString().split(' ')[0]}] Joined class on ${platform}`);
-    });
 
     username._listeners.push(async u => {
-        await socket.disconnect();
-        await socket.connect();
+        socket && await socket.disconnect();
+        socket && await socket.connect();
     });
 
     let soundsChangeListener = () => {
-        socket.emit("update", Array.from(sounds.keys()));
+        socket && socket.emit("update", Array.from(sounds.keys()));
         $('#sounds-select').html(`
             ${Array.from(sounds.keys()).map(k => `
                 <option value="${k}">${k}</option>
@@ -151,16 +172,15 @@ const logBuffer = {
 
     $(
         () => {
-            $(document).on('deleteFileSound', function (e) {
+            $(document).on('deleteFileSound', async function (e) {
                 const id = e.originalEvent.whom.getAttribute("data-id");
                 for (let [key, value] of sounds.entries()) {
                     sounds.set(key, value.filter(x => x !== id));
                     if(!sounds.get(key).length)
                         sounds.delete(key);
                 }
-                files.delete(id);
+                await idb.del(id);
                 ldb.set("sounds", JSON.stringify(Array.from(sounds.entries())));
-                ldb.set("files", JSON.stringify(Array.from(files.entries())));
                 soundsChangeListener();
             })
         }
@@ -189,21 +209,21 @@ const logBuffer = {
                 } else {
                     sounds.get(filename).push(hash);
                 }
-                files.set(hash, file);
+                await idb.set(hash, file);
 
-                ldb.set("sounds", JSON.stringify(Array.from(sounds.entries())));
-                ldb.set("files", JSON.stringify(Array.from(files.entries())));
+                ldb.set("sounds", JSON.stringify(Array.from(sounds)));
 
                 console.log(`Added file '${filename}' (${hash})`);
                 if(soundsChangeListener) soundsChangeListener();
             };
 
-            $("#fileUploadForm").submit(async e => {
+            $("#uploadFile").click(async e => {
                 e.preventDefault();
                 await addFileToSounds();
             });
         }
     );
+
 
     $(() => $('#sounds-select').change(() => $('#sound-hash-list').html(listItems(sounds.get($('#sounds-select').val())))))
 })();
