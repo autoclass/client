@@ -3,7 +3,7 @@ import * as $ from 'jquery';
 import 'bootstrap';
 import './index.html';
 
-import { io } from 'socket.io-client';
+import {io} from 'socket.io-client';
 import * as idb from 'idb-keyval';
 
 import * as sha1 from "sha-1";
@@ -35,21 +35,51 @@ const logBuffer = {
     push(str) {
         this.buf.push(str);
         this.listeners.forEach(f => f(str, this.buf));
-        if(this.maxSize === this.buf.length) {
+        if (this.maxSize === this.buf.length) {
             this.buf.shift();
         }
     }
 };
 
-(async function(){
+(async function () {
     // ldb
-    !function(){function e(t,o){return n?void(n.transaction("s").objectStore("s").get(t).onsuccess=function(e){const t=e.target.result&&e.target.result.v||null;o(t)}):void setTimeout(function(){e(t,o)},100)}var t=window.indexedDB||window.mozIndexedDB||window.webkitIndexedDB||window.msIndexedDB;if(!t)return void console.error("indexDB not supported");var n,o={k:"",v:""},r=t.open("d2",1);r.onsuccess=function(e){n=this.result},r.onerror=function(e){console.error("indexedDB request error"),console.log(e)},r.onupgradeneeded=function(e){n=null;var t=e.target.result.createObjectStore("s",{keyPath:"k"});t.transaction.oncomplete=function(e){n=e.target.db}},window.ldb={get:e,set:function(e, t){o.k=e,o.v=t,n.transaction("s","readwrite").objectStore("s").put(o)}}}();
-    ldb.get = (f => (...args) => new Promise(resolve => f.apply(this, args.push(r => resolve(r)) && args) ))(ldb.get);
+    !function () {
+        function e(t, o) {
+            return n ? void (n.transaction("s").objectStore("s").get(t).onsuccess = function (e) {
+                const t = e.target.result && e.target.result.v || null;
+                o(t)
+            }) : void setTimeout(function () {
+                e(t, o)
+            }, 100)
+        }
+
+        var t = window.indexedDB || window.mozIndexedDB || window.webkitIndexedDB || window.msIndexedDB;
+        if (!t) return void console.error("indexDB not supported");
+        var n, o = {k: "", v: ""}, r = t.open("d2", 1);
+        r.onsuccess = function (e) {
+            n = this.result
+        }, r.onerror = function (e) {
+            console.error("indexedDB request error"), console.log(e)
+        }, r.onupgradeneeded = function (e) {
+            n = null;
+            var t = e.target.result.createObjectStore("s", {keyPath: "k"});
+            t.transaction.oncomplete = function (e) {
+                n = e.target.db
+            }
+        }, window.ldb = {
+            get: e, set: function (e, t) {
+                o.k = e, o.v = t, n.transaction("s", "readwrite").objectStore("s").put(o)
+            }
+        }
+    }();
+    ldb.get = (f => (...args) => new Promise(resolve => f.apply(this, args.push(r => resolve(r)) && args)))(ldb.get);
 
     const username = {
         _u: '',
         _listeners: [],
-        get() { return this._u; },
+        get() {
+            return this._u;
+        },
         set(val) {
             this._u = val;
             ldb.set("username", val);
@@ -59,8 +89,8 @@ const logBuffer = {
 
     function setupSock(_sock) {
         const unmuteFor = async seconds => {
-            await fetch( `http://localhost:3001/unmute`, {method: 'POST'} );
-            setTimeout( () => fetch(`http://localhost:3001/mute`, {method: 'POST'} ), seconds * 1000 );
+            await fetch(`http://localhost:3001/unmute`, {method: 'POST'});
+            setTimeout(() => fetch(`http://localhost:3001/mute`, {method: 'POST'}), seconds * 1000);
         }
         const sleep = (milliseconds) => {
             return new Promise(resolve => setTimeout(resolve, milliseconds))
@@ -83,7 +113,7 @@ const logBuffer = {
         });
         _sock.on('play', async ({sound}) => {
             const soundHashes = sounds.get(sound);
-            if(!soundHashes) return;
+            if (!soundHashes) return;
 
             const hash = soundHashes[Math.floor(Math.random() * soundHashes.length)];
             const blob = await idb.get(hash);
@@ -92,11 +122,11 @@ const logBuffer = {
 
             audio.onloadedmetadata = async e => {
                 URL.revokeObjectURL(audio.src);
-                dryMode || await fetch( `http://localhost:3001/unmute`, {method: 'POST'} );
-                await sleep(500);
+                dryMode || await fetch(`http://localhost:3001/unmute`, {method: 'POST'});
+                await sleep(2000);
                 audio.play();
-                unmuteFor(Math.round(audio.duration) + 2);
-                dryMode || await fetch( `http://localhost:3001/mute`, {method: 'POST'} );
+                dryMode || setTimeout(() => fetch(`http://localhost:3001/mute`, {method: 'POST'}),
+                    (Math.ceil(audio.duration) + 3) * 1000)
             }
 
             logBuffer.push(`[${new Date().toTimeString().split(' ')[0]}] Played sound '${sound}'/${hash}`);
@@ -131,7 +161,7 @@ const logBuffer = {
     $(
         () => {
             username._listeners.push(u => {
-                $( $('#username').val(u) );
+                $($('#username').val(u));
             })
             $("#usernameForm").submit(e => {
                 e.preventDefault();
@@ -157,7 +187,7 @@ const logBuffer = {
         async () => {
             try {
                 const versionResponse = await fetch(`http://localhost:3001/version`);
-                if(!versionResponse.ok || (await versionResponse.json()) < flaskAdapterVersion) {
+                if (!versionResponse.ok || (await versionResponse.json()) < flaskAdapterVersion) {
                     $(alert('danger',
                         'Stara verzija lokalnog servera!',
                         'Update sa <kbd>git pull</kbd>')
@@ -174,16 +204,15 @@ const logBuffer = {
     );
 
     const _username = await ldb.get("username");
-    if(_username) username.set(_username);
+    if (_username) username.set(_username);
 
     let dryMode = false;
 
     // Name -> [SHA-1]
     const _sounds = JSON.parse(await ldb.get("sounds"));
-    const sounds =  (_sounds && new Map(_sounds)) || new Map();
+    const sounds = (_sounds && new Map(_sounds)) || new Map();
 
     let socket;
-
 
 
     username._listeners.push(async u => {
@@ -208,7 +237,7 @@ const logBuffer = {
                 const id = e.originalEvent.whom.getAttribute("data-id");
                 for (let [key, value] of sounds.entries()) {
                     sounds.set(key, value.filter(x => x !== id));
-                    if(!sounds.get(key).length)
+                    if (!sounds.get(key).length)
                         sounds.delete(key);
                 }
                 await idb.del(id);
@@ -225,7 +254,7 @@ const logBuffer = {
                 const hash = await sha1(await file.text());
                 const filename = $("#filename").val();
 
-                if(!file.type.startsWith('audio/')) {
+                if (!file.type.startsWith('audio/')) {
                     $(`
                         <div class="alert alert-danger alert-dismissible fade show" role="alert">
                             <strong>Odabrani fajl nije audio fajl.</strong> Odaberite audio fajl (mp3, ogg, wav, ...).
@@ -236,7 +265,7 @@ const logBuffer = {
                     `).hide().appendTo('#overlay').slideDown('normal').delay(3500).fadeOut();
                 }
 
-                if(sounds.get(filename) === undefined) {
+                if (sounds.get(filename) === undefined) {
                     sounds.set(filename, [hash]);
                 } else {
                     sounds.get(filename).push(hash);
@@ -246,7 +275,7 @@ const logBuffer = {
                 ldb.set("sounds", JSON.stringify(Array.from(sounds)));
 
                 console.log(`Added file '${filename}' (${hash})`);
-                if(soundsChangeListener) soundsChangeListener();
+                if (soundsChangeListener) soundsChangeListener();
             };
 
             $("#fileUploadForm").submit(async e => {

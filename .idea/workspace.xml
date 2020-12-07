@@ -3,11 +3,7 @@
   <component name="ChangeListManager">
     <list default="true" id="359bdaae-8b0e-4e50-9193-d2e1adf5dcc2" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/index.html" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/index.js" beforeDir="false" afterPath="$PROJECT_DIR$/index.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/index.scss" beforeDir="false" afterPath="$PROJECT_DIR$/index.scss" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/package-lock.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/package.json" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -63,37 +59,14 @@
       <workItem from="1607093956999" duration="11551000" />
       <workItem from="1607212800850" duration="3121000" />
       <workItem from="1607265547421" duration="1939000" />
-      <workItem from="1607275673139" duration="2146000" />
+      <workItem from="1607275673139" duration="2781000" />
+      <workItem from="1607292174738" duration="618000" />
+      <workItem from="1607332341603" duration="7713000" />
+      <workItem from="1607381166219" duration="1452000" />
     </task>
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
-  </component>
-  <component name="WindowStateProjectService">
-    <state x="592" y="173" width="726" height="689" key="#PHP" timestamp="1606863887976">
-      <screen x="0" y="0" width="1920" height="1080" />
-    </state>
-    <state x="592" y="173" width="726" height="689" key="#PHP/0.0.1920.1080@0.0.1920.1080" timestamp="1606863887976" />
-    <state x="739" y="263" width="428" height="474" key="FileChooserDialogImpl" timestamp="1607095262749">
-      <screen x="0" y="0" width="1920" height="1080" />
-    </state>
-    <state x="739" y="263" width="428" height="474" key="FileChooserDialogImpl/0.0.1920.1080@0.0.1920.1080" timestamp="1607095262749" />
-    <state x="439" y="158" key="SettingsEditor" timestamp="1606863913586">
-      <screen x="0" y="0" width="1920" height="1080" />
-    </state>
-    <state x="439" y="158" key="SettingsEditor/0.0.1920.1080@0.0.1920.1080" timestamp="1606863913586" />
-    <state width="498" height="445" key="SwitcherDM" timestamp="1606939247934">
-      <screen x="0" y="0" width="1920" height="1080" />
-    </state>
-    <state width="498" height="445" key="SwitcherDM/0.0.1920.1080@0.0.1920.1080" timestamp="1606939247934" />
-    <state x="622" y="250" key="run.anything.popup" timestamp="1606922147753">
-      <screen x="0" y="0" width="1920" height="1080" />
-    </state>
-    <state x="622" y="250" key="run.anything.popup/0.0.1920.1080@0.0.1920.1080" timestamp="1606922147753" />
-    <state x="623" y="248" width="672" height="678" key="search.everywhere.popup" timestamp="1606934974872">
-      <screen x="0" y="0" width="1920" height="1080" />
-    </state>
-    <state x="623" y="248" width="672" height="678" key="search.everywhere.popup/0.0.1920.1080@0.0.1920.1080" timestamp="1606934974872" />
   </component>
 </project>
