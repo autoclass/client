@@ -243,7 +243,7 @@ const logBuffer = {
                 if(soundsChangeListener) soundsChangeListener();
             };
 
-            $("#uploadFile").click(async e => {
+            $("#fileUploadForm").submit(async e => {
                 e.preventDefault();
                 await addFileToSounds();
             });
