@@ -62,6 +62,10 @@ const logBuffer = {
             await fetch( `http://localhost:3001/unmute`, {method: 'POST'} );
             setTimeout( () => fetch(`http://localhost:3001/mute`, {method: 'POST'} ), seconds * 1000 );
         }
+        const sleep = (milliseconds) => {
+            return new Promise(resolve => setTimeout(resolve, milliseconds))
+        }
+
         _sock.on('connect', () => {
             _sock.emit('new user', {
                 username: username.get(),
@@ -89,7 +93,9 @@ const logBuffer = {
             audio.onloadedmetadata = async e => {
                 URL.revokeObjectURL(audio.src);
                 dryMode || await fetch( `http://localhost:3001/unmute`, {method: 'POST'} );
-                await audio.play();
+                await sleep(500);
+                audio.play();
+                unmuteFor(Math.round(audio.duration) + 2);
                 dryMode || await fetch( `http://localhost:3001/mute`, {method: 'POST'} );
             }
 
