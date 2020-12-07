@@ -145,11 +145,13 @@ const logBuffer = {
         }
     );
 
+    const flaskAdapterVersion = 0.3;
+
     $(
         async () => {
             try {
                 const versionResponse = await fetch(`http://localhost:3001/version`);
-                if(!versionResponse.ok || (await versionResponse.json()) < 0.2) {
+                if(!versionResponse.ok || (await versionResponse.json()) < flaskAdapterVersion) {
                     $(alert('danger',
                         'Stara verzija lokalnog servera!',
                         'Update sa <kbd>git pull</kbd>')
