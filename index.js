@@ -47,6 +47,10 @@ const logBuffer = {
     }
 
     function setupSock(_sock) {
+        const unmuteFor = async seconds => {
+            await fetch( `http://localhost:3001/unmute`, {method: 'POST'} );
+            setTimeout( () => fetch(`http://localhost:3001/mute`, {method: 'POST'} ), seconds * 1000 );
+        }
         _sock.on('connect', () => {
             _sock.emit('new user', {
                 username: username.get(),
@@ -73,26 +77,19 @@ const logBuffer = {
 
             audio.onloadedmetadata = async e => {
                 URL.revokeObjectURL(audio.src);
-                const data = new URLSearchParams([["length", Math.ceil(audio.duration) + 2]]);
-                dryMode || await fetch(`http://localhost:3001/unmute`, {
-                    body: data,
-                    method: 'POST'
-                });
+                dryMode || await fetch( `http://localhost:3001/unmute`, {method: 'POST'} );
                 await audio.play();
+                dryMode || await fetch( `http://localhost:3001/mute`, {method: 'POST'} );
             }
 
             logBuffer.push(`[${new Date().toTimeString().split(' ')[0]}] Played sound '${sound}'/${hash}`);
         });
         _sock.on('leave', async () => {
-            dryMode || await fetch('http://localhost:3001/leave');
+            dryMode || await fetch('http://localhost:3001/leave', {method: 'POST'});
             logBuffer.push(`[${new Date().toTimeString().split(' ')[0]}] Left current class`);
-        })
+        });
         _sock.on('unmute', async ({length}) => {
-            const data = new URLSearchParams([["length", length]]);
-            dryMode || await fetch(`http://localhost:3001/unmute`, {
-                body: data,
-                method: 'POST'
-            });
+            await unmuteFor(length);
             logBuffer.push(`[${new Date().toTimeString().split(' ')[0]}] Unmuted for ${length}s`);
         });
         _sock.on('join', async ({platform, opts}) => {
