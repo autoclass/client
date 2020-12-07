@@ -41,6 +41,10 @@ const logBuffer = {
     }
 };
 
+function timestamp() {
+    return new Date().toTimeString().split(' ')[0];
+}
+
 (async function () {
     // ldb
     !function () {
@@ -101,14 +105,14 @@ const logBuffer = {
                 username: username.get(),
                 sounds: Array.from(sounds.keys()),
             });
-            logBuffer.push(`[${new Date().toTimeString().split(' ')[0]}] Connected!`);
+            logBuffer.push(`[${timestamp()}] Connected!`);
         });
         _sock.on('disconnect', error => {
-            logBuffer.push(`[${new Date().toTimeString().split(' ')[0]}] Disconnected! (${error})`);
+            logBuffer.push(`[${timestamp()}] Disconnected! (${error})`);
             console.error("Disconnected!", error)
         });
         _sock.on('connect_error', error => {
-            logBuffer.push(`[${new Date().toTimeString().split(' ')[0]}] Could not connect! (${error})`);
+            logBuffer.push(`[${timestamp()}] Could not connect! (${error})`);
             console.error("Could not connect!", error)
         });
         _sock.on('play', async ({sound}) => {
@@ -129,15 +133,19 @@ const logBuffer = {
                     (Math.ceil(audio.duration) + 1) * 1000)
             }
 
-            logBuffer.push(`[${new Date().toTimeString().split(' ')[0]}] Played sound '${sound}'/${hash}`);
+            logBuffer.push(`[${timestamp()}] Played sound '${sound}'/${hash}`);
         });
         _sock.on('leave', async () => {
             dryMode || await fetch('http://localhost:3001/leave', {method: 'POST'});
-            logBuffer.push(`[${new Date().toTimeString().split(' ')[0]}] Left current class`);
+            logBuffer.push(`[${timestamp()}] Left current class`);
         });
         _sock.on('unmute', async ({length}) => {
             await unmuteFor(length);
-            logBuffer.push(`[${new Date().toTimeString().split(' ')[0]}] Unmuted for ${length}s`);
+            logBuffer.push(`[${timestamp()}] Unmuted for ${length}s`);
+        });
+        _sock.on('reset', async () => {
+            dryMode || await fetch('http://localhost:3001/reset', {method: 'POST'});
+            logBuffer.push(`[${timestamp()}] Reset AHK script!`);
         });
         _sock.on('join', async ({platform, opts}) => {
             const data = new URLSearchParams([["platform", platform], ["opts", opts]]);
@@ -145,7 +153,7 @@ const logBuffer = {
                 body: data,
                 method: 'POST'
             });
-            logBuffer.push(`[${new Date().toTimeString().split(' ')[0]}] Joined class on ${platform}`);
+            logBuffer.push(`[${timestamp()}] Joined class on ${platform}`);
         });
     }
 
@@ -181,7 +189,7 @@ const logBuffer = {
         }
     );
 
-    const flaskAdapterVersion = 0.3;
+    const flaskAdapterVersion = 0.4;
 
     $(
         async () => {
