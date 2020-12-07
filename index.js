@@ -17,6 +17,17 @@ function listItems(items) {
                             </li>`) || "";
 }
 
+function alert(type, strong, rest) {
+    return `
+    <div class="alert alert-${type} alert-dismissible fade show" role="alert">
+        <strong>${strong}</strong> ${rest}
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+    `;
+}
+
 const logBuffer = {
     buf: [],
     listeners: [],
@@ -125,16 +136,32 @@ const logBuffer = {
                 socket = io(socketUrl, {query: {token}});
                 setupSock(socket);
 
-                $(`
-                    <div class="alert alert-info alert-dismissible fade show" role="alert">
-                        <strong>Konekcija izvršena!</strong> Eventualne greške/logovi se nalaze u konzoli (F12).
-                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                            <span aria-hidden="true">&times;</span>
-                        </button>
-                    </div>
-                `).hide().appendTo('#overlay').slideDown('normal').delay(3500).fadeOut();
+                $(alert('info',
+                    'Konekcija izvršena',
+                    'Eventualne greške/logovi se nalaze u konzoli (F12).')
+                ).hide().appendTo('#overlay').slideDown('normal').delay(3500).fadeOut();
                 username.set($("#username").val());
             });
+        }
+    );
+
+    $(
+        async () => {
+            try {
+                const versionResponse = await fetch(`http://localhost:3001/version`);
+                if(!versionResponse.ok || (await versionResponse.json()) < 0.2) {
+                    $(alert('danger',
+                        'Stara verzija lokalnog servera!',
+                        'Update sa <kbd>git pull</kbd>')
+                    ).hide().appendTo('#overlay').slideDown('normal');
+                }
+            } catch (e) {
+                console.error(e);
+                $(alert('danger',
+                    'Neuspešna konekcija na lokalni server! Da li je upaljen?',
+                    e.message)
+                ).hide().appendTo('#overlay').slideDown('normal');
+            }
         }
     );
 
