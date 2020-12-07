@@ -123,10 +123,10 @@ const logBuffer = {
             audio.onloadedmetadata = async e => {
                 URL.revokeObjectURL(audio.src);
                 dryMode || await fetch(`http://localhost:3001/unmute`, {method: 'POST'});
-                await sleep(2000);
+                await sleep(1000);
                 audio.play();
                 dryMode || setTimeout(() => fetch(`http://localhost:3001/mute`, {method: 'POST'}),
-                    (Math.ceil(audio.duration) + 3) * 1000)
+                    (Math.ceil(audio.duration) + 1) * 1000)
             }
 
             logBuffer.push(`[${new Date().toTimeString().split(' ')[0]}] Played sound '${sound}'/${hash}`);
